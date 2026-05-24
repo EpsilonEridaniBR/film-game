@@ -63,17 +63,20 @@ class GAME:
         self.deck.build(path)
         self.deck.shuffle()
         
-        self.resetPlayers(100)
+        self.resetPlayers(25)
         self.fest = self.deck.null
         self.debuff = self.deck.null
         self.movies: list[MOVIE] = []
         self.newFest()
 
         noCards = 6
+        deal_cats = {"SCRIPT", "DIRECTOR", "ACTOR"}
 
         for i in range(noCards*self.noPlayers):
-            card = self.deck.reveal()
+            card = self.deck.reveal_cat(deal_cats)
             self.players[i%self.noPlayers].giveCard(card)
+
+        self.deck.shuffle()
 
     def setFestCount(self, count: int):
         self.festCount = count

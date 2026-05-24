@@ -95,6 +95,14 @@ class DECK:
             self.toplay.remove(card)
             self.tpleng = len(self.toplay)
             return card
+
+    def reveal_cat(self, cats: set):
+        for card in self.toplay:
+            if card.cat in cats:
+                self.discard.append(card)
+                self.toplay.remove(card)
+                self.tpleng = len(self.toplay)
+                return card
                         
     def revFest(self):
         if self.flleng >= 1:
