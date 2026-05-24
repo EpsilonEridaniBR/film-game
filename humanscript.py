@@ -343,7 +343,7 @@ while not g.endGame:
     elif next_fest_idx is not None:
         fest_countdown = f" — NEXT FEST IN {next_fest_idx} TURNS"
     else:
-        fest_countdown = " — NO MORE FESTIVALS"
+        fest_countdown = f" — NO MORE FESTIVALS ({g.deck.tpleng} TURNS LEFT)"
     print(f"\n=============================== TURN {turn_number} - {fest_str}{fest_countdown} ===============================\n")
 
 print(f"\n=== FINAL ROUND ===\n")
