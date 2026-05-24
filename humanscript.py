@@ -8,15 +8,15 @@ import mplcursors
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 
-from game import GAME
-from player import PLAYER
+from game import Game
+from player import Player
 
 itt = "a"
 path = itt + "/input.csv"
 
 players = ["RED", "BLUE", "YELLOW", "GREEN"]
 
-g = GAME()
+g = Game()
 g.createPlayers("h", players)
 g.setup(path)
 g.setFestCount(4)
@@ -30,7 +30,7 @@ def cname(player):
     name = player.name if hasattr(player, "name") else str(player)
     return f"{ANSI.get(name, '')}{name}{RESET}"
 
-def print_hand(player: PLAYER, max_name_len: int):
+def print_hand(player: Player, max_name_len: int):
     cats = [cat for cat in CAT_ORDER if cat in player.table]
     padding = " " * (max_name_len - len(player.name) + 2)
     colored_prefix = f"{cname(player)}:{padding}"
@@ -49,7 +49,7 @@ def print_hands():
 def print_balances():
     print("  |  ".join(f"{cname(p)}: £{p.balance}" for p in g.players) + f"  |  DEBUFF: {g.debuff.name}")
 
-def pick_card(player: PLAYER, cat):
+def pick_card(player: Player, cat):
     indices = player.table[cat]
     if len(indices) == 1:
         return player.hand[indices[0]]
@@ -65,7 +65,7 @@ def pick_card(player: PLAYER, cat):
             return player.hand[indices[int(choice)-1]]
         print(f"  Invalid — enter 0–{len(indices)}")
 
-def prompt_movie(player: PLAYER):
+def prompt_movie(player: Player):
     has = lambda cat: cat in player.table and len(player.table[cat]) > 0
     if not (has("SCRIPT") and has("DIRECTOR") and has("ACTOR")):
         return
@@ -106,6 +106,7 @@ def prompt_movie(player: PLAYER):
     movie.modify(g.fest.name)
     movie.modify(g.debuff.name)
     player.changeBalance(movie.value, 0)
+    g.movies.append(movie)
 
     film_log.append({
         "turn":     turn_number,
@@ -290,8 +291,20 @@ while not g.endGame:
             if card.name == "TAX SCANDAL" and result is not None:
                 rolled, target = result
                 print(f"  → TAX SCANDAL applied to {cname(target)} — rolled {rolled}")
-            elif card.name == "CASH INJECTION" and result is not None:
-                print(f"  → CASH INJECTION applied to {cname(result)}")
+            elif card.name == "STRIKE ACTION":
+                print(f"  → STRIKE ACTION applied to all players")
+            elif card.name == "PLANTED PR PIECE" and result is not None:
+                print(f"  → PLANTED PR PIECE: {cname(result)} gets £{list(card.modifiers.values())[0][1:]} — debuff cleared")
+            elif result is not None:
+                print(f"  → {card.name} applied to {cname(result)}")
+            elif card.name == "TAX CREDIT":
+                print(f"  → TAX CREDIT not applied — no one has purchased a card yet")
+            elif card.name == "TOURISM":
+                print(f"  → TOURISM not applied — no films have been released yet")
+            elif card.name == "LIFETIME ACHIEVEMENT":
+                print(f"  → LIFETIME ACHIEVEMENT not applied — no films have been released yet")
+            elif card.name == "AARP AWARD":
+                print(f"  → AARP AWARD not applied — no films featuring a VETERAN director have been released yet")
             else:
                 print(f"  → {card.name} applied")
 
@@ -311,6 +324,7 @@ while not g.endGame:
             print(f"  Invalid — enter one of: {', '.join(shortcuts)}")
         buyer = shortcuts[key]
         price = int(input(f"  Price paid by {cname(buyer)}? £"))
+        g.lastBuyer = buyer
         buyer.giveCard(card)
         buyer.changeBalance(price, 1)
         print(f"  → {cname(buyer)} bought {card.name} for £{price}")

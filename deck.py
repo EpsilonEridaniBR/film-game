@@ -1,15 +1,15 @@
 import csv
 import random
-from card import CARD
+from card import Card, BiddableCard
 
-class DECK:
+class Deck:
     def __init__(self):
         self.status = "UNDEFINED"
         self.deck = [] # list of all unqiue cards
         self.glossary = {}
         self.table = {} # dictionary the maps categories of cards to deck indecies
 
-    def paircard(self, card: CARD, pairid: int, mod):
+    def paircard(self, card: Card, pairid: int, mod):
         # applies modifies to a pair of cards
         pairedcard = self.deck[pairid]
         card.attachModifier(pairedcard.name, mod)
@@ -33,7 +33,7 @@ class DECK:
 
     def build(self, path):
 
-        self.null = CARD("N/A", "NULL", "NULL", 0)
+        self.null = Card("N/A", "NULL", "NULL", 0)
 
         with open(path, mode='r') as file:
             cards = csv.reader(file) # list of rows from passed through csv path
@@ -50,15 +50,15 @@ class DECK:
                     self.table[category].append(index)
 
                 # creates card object and appends to deck
-                card = CARD(index, category, name, qty)
+                val = line[4]
+                if val != "N/A":
+                    card = BiddableCard(index, category, name, qty)
+                    card.assignVal(val)
+                else:
+                    card = Card(index, category, name, qty)
+
                 self.deck.append(card)
                 self.glossary[name] = len(self.deck) - 1
-
-                # assigns card value
-                val = line[4] 
-
-                if val != "N/A":
-                    card.assignVal(val)
                 
                 # assigns card modifiers
                 modifiers = line[5:]
@@ -82,7 +82,7 @@ class DECK:
 
             self.size = self.tpleng + self.flleng
             for card in self.deck:
-                if hasattr(card, "dice"):
+                if isinstance(card, BiddableCard):
                     card.calcProb(self.tpleng)
 
     def shuffle(self):

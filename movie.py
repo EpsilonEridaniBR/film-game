@@ -2,7 +2,7 @@
 
 
 
-class MOVIE:
+class Movie:
     def __init__(self, script, director, actor):
         self.script = script
         self.director = director

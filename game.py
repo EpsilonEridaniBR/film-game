@@ -1,11 +1,11 @@
 import datetime
 import random
-from player import PLAYER
-from deck import DECK
-from card import CARD
-from movie import MOVIE
+from player import Player
+from deck import Deck
+from card import Card, BiddableCard
+from movie import Movie
 
-class GAME:
+class Game:
     def __init__(self):
         self.actionlog = []
         self.timeOfGeneration = datetime.datetime.now()
@@ -26,15 +26,15 @@ class GAME:
 
     def createPlayers(self, type: str, arr: list[str]):
 
-        self.players: list[PLAYER] = []
+        self.players: list[Player] = []
 
         if type == "a":
             self.automated = 1
         else:
             self.automated = 0
-        
+
         for name in arr:
-            self.players.append(PLAYER(name, self.automated))
+            self.players.append(Player(name, self.automated))
 
         self.noPlayers = len(self.players)
 
@@ -55,18 +55,19 @@ class GAME:
 
         self.fest = self.fest = self.deck.revFest()
         self.log("NEW FESTIVAL! - " + str(self.fest))
-    
-    def setup(self, path):
+
+    def setup(self, path: str):
         self.turnNo = 0
         self.pIndex = 0
-        self.deck = DECK()
+        self.deck = Deck()
         self.deck.build(path)
         self.deck.shuffle()
-        
+
         self.resetPlayers(25)
         self.fest = self.deck.null
         self.debuff = self.deck.null
-        self.movies: list[MOVIE] = []
+        self.movies: list[Movie] = []
+        self.lastBuyer: Player | None = None
 
         noCards = 6
         deal_cats = {"SCRIPT", "DIRECTOR", "ACTOR"}
@@ -77,7 +78,7 @@ class GAME:
 
         self.deck.shuffle()
 
-    def activateFestival(self, card: CARD):
+    def activateFestival(self, card: Card):
         if self.fest != self.deck.null:
             self.awardsVote()
         self.fest = card
@@ -93,13 +94,13 @@ class GAME:
         self.endGame = 1
         self.log("FESTIVALS ARE OVER - END GAME HAS STARTED")
 
-    def bidding(self, card: CARD):
+    def bidding(self, card: BiddableCard):
         bidders = self.players.copy()
         bindex = self.pIndex
         bid = 0
 
         while len(bidders) > 1:
-            
+
             bindex = bindex+1
             bleng = len(bidders)
 
@@ -115,6 +116,7 @@ class GAME:
                 bidders.remove(bidder)
                 bindex = bindex-1
 
+        self.lastBuyer = bidders[0]
         bidders[0].giveCard(card)
         bidders[0].changeBalance(bid, 1)
         self.log(str(bidders[0]) + " bought " + str(card) + " for " + str(bid))
@@ -126,41 +128,97 @@ class GAME:
         self.log(str(self.debuff) + " has been replaced by " + str(newDebuff))
         self.debuff = newDebuff
 
-    def applyAction(self, card: CARD, activePlayer: PLAYER):
-        name = card.name
-        mods = card.modifiers
-        keys = list(mods.keys())
-        key = keys[0]
-        val = mods[key]
-        log_suffix = ""
-        result = None
+    # --- event handlers ---
 
-        if name == "CASH INJECTION":
-            balances = self.actionlog[-1][5:]
-            poorest = self.players[balances.index(min(balances))]
-            poorest.changeBalance(int(val[1:]), 0)
-            result = poorest.name
-        elif name == "TAX SCANDAL":
-            balances = self.actionlog[-1][5:]
-            richest = self.players[balances.index(max(balances))]
-            dice_roll = sum(random.randint(1, 8) for _ in range(3))
-            richest.changeBalance(dice_roll, 1)
-            log_suffix = " - rolled " + str(dice_roll)
-            result = (dice_roll, richest.name)
-        elif name == "POACH TALENT":
-            if self.automated:
-                victim = self.players[random.randrange(0, self.noPlayers)]
-                noCards = len(victim.hand)
-                if noCards > 0:
-                    card = victim.hand[random.randrange(0, noCards)]
-                    victim.removeCard(card)
-                    activePlayer.giveCard(card)
-        elif name == "STRIKE ACTION":
-            for player in self.players:
-                cost = round(player.balance * (int(val[1:])/100))
-                player.changeBalance(cost, 1)
+    def _handle_cash_injection(self, card: Card, player: Player):
+        amount = int(list(card.modifiers.values())[0][1:])
+        poorest = min(self.players, key=lambda p: p.balance)
+        poorest.changeBalance(amount, 0)
+        return poorest.name, ""
+    
+    def _handle_tax_credit(self, card: Card, player: Player):
+        amount = int(list(card.modifiers.values())[0][1:])
+        if self.lastBuyer:
+            self.lastBuyer.changeBalance(amount, 0)
+            return self.lastBuyer.name, ""
+        return None, ""
 
+    def _handle_tax_scandal(self, card: Card, player: Player):
+        richest = max(self.players, key=lambda p: p.balance)
+        dice_roll = sum(random.randint(1, 8) for _ in range(3))
+        richest.changeBalance(dice_roll, 1)
+        return (dice_roll, richest.name), " - rolled " + str(dice_roll)
 
+    def _handle_poach_talent(self, card: Card, player: Player):
+        if self.automated:
+            victim = self.players[random.randrange(0, self.noPlayers)]
+            if victim.hand:
+                stolen = victim.hand[random.randrange(0, len(victim.hand))]
+                victim.removeCard(stolen)
+                player.giveCard(stolen)
+        return None, ""
+
+    def _handle_strike_action(self, card: Card, player: Player):
+        pct = int(list(card.modifiers.values())[0][1:])
+        for p in self.players:
+            cost = round(p.balance * (pct / 100))
+            p.changeBalance(cost, 1)
+        return None, ""
+
+    def _handle_lifetime_achievement(self, card: Card, player: Player):
+        # awarded to player who has released the most films
+        if not self.movies:
+            return None, ""
+        amount = int(list(card.modifiers.values())[0][1:])
+        winner = max(self.players, key=lambda p: len(p.movies))
+        winner.changeBalance(amount, 0)
+        return winner.name, ""
+
+    def _handle_aarp_award(self, card: Card, player: Player):
+        # awarded to player who has released the most films featuring a VETERAN director
+        def veteran_count(p: Player):
+            return sum(1 for m in p.movies if m.director.name == "VETERAN")
+        if not any(veteran_count(p) > 0 for p in self.players):
+            return None, ""
+        amount = int(list(card.modifiers.values())[0][1:])
+        winner = max(self.players, key=veteran_count)
+        winner.changeBalance(amount, 0)
+        return winner.name, ""
+
+    def _handle_planted_pr_piece(self, card: Card, player: Player):
+        # active player gets bonus and the current debuff is cleared
+        amount = int(list(card.modifiers.values())[0][1:])
+        player.changeBalance(amount, 0)
+        if self.debuff != self.deck.null:
+            self.deck.discard.append(self.debuff)
+            self.debuff = self.deck.null
+        return player.name, ""
+
+    def _handle_tourism(self, card: Card, player: Player):
+        # awarded to player who released the most recent movie
+        amount = int(list(card.modifiers.values())[0][1:])
+        if self.movies:
+            last_movie = self.movies[-1]
+            for p in self.players:
+                if p.movies and p.movies[-1] is last_movie:
+                    p.changeBalance(amount, 0)
+                    return p.name, ""
+        return None, ""
+
+    def applyAction(self, card: Card, activePlayer: Player):
+        handlers = {
+            "CASH INJECTION":       self._handle_cash_injection,
+            "TAX CREDIT":           self._handle_tax_credit,
+            "TAX SCANDAL":          self._handle_tax_scandal,
+            "POACH TALENT":         self._handle_poach_talent,
+            "STRIKE ACTION":        self._handle_strike_action,
+            "LIFETIME ACHIEVEMENT": self._handle_lifetime_achievement,
+            "AARP AWARD":           self._handle_aarp_award,
+            "PLANTED PR PIECE":     self._handle_planted_pr_piece,
+            "TOURISM":              self._handle_tourism,
+        }
+        handler = handlers.get(card.name)
+        result, log_suffix = handler(card, activePlayer) if handler else (None, "")
         self.log(str(card) + " applied action" + log_suffix)
         return result
 
@@ -179,7 +237,7 @@ class GAME:
             if not self.automated:
                 activeCard.info()
 
-            if hasattr(activeCard, "dice"):
+            if isinstance(activeCard, BiddableCard):
                 self.bidding(activeCard)
             elif activeCard.cat == "DEBUFF":
                 self.replaceDebuff(activeCard)
@@ -193,14 +251,14 @@ class GAME:
         # play debuff
         if "DEBUFF" in activePlayer.table:
             card = activePlayer.playDebuff()
-            if isinstance(card, CARD):
+            if isinstance(card, Card):
                 self.log(str(activePlayer) + " has played " + str(card))
                 self.replaceDebuff(card)
 
         # play action
         if "EVENT" in activePlayer.table:
             card = activePlayer.playAction()
-            if isinstance(card, CARD):
+            if isinstance(card, Card):
                 self.log(str(activePlayer) + " has played " + str(card))
                 self.applyAction(card, activePlayer)
 
@@ -231,8 +289,7 @@ class GAME:
     def printLog(self):
         for item in self.actionlog:
             print(item)
-    
+
     def printMovies(self):
         for movie in self.movies:
             print([str(movie), movie.value])
-            

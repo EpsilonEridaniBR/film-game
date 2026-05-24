@@ -1,10 +1,10 @@
 import random
-from card import CARD
-from movie import MOVIE
+from card import Card, BiddableCard
+from movie import Movie
 
 robobehav = ["random", "boring"]
 
-class PLAYER:
+class Player:
     def __init__(self, name, robobool):
         self.name = name
         self.automated = robobool
@@ -16,9 +16,9 @@ class PLAYER:
 
     def reset(self, cash: int):
         self.balance = cash
-        self.hand: list[CARD] = []
-        self.table = {}
-        self.movies = []
+        self.hand: list[Card] = []
+        self.table: dict[str, list[int]] = {}
+        self.movies: list[Movie] = []
 
     def info(self):
         print(self.name)
@@ -27,7 +27,7 @@ class PLAYER:
         for i in range(len(self.hand)):
             print("[" + str(i) + "]: " + str(self.hand[i]))
 
-    def bid(self, card: CARD, currentbid: int):
+    def bid(self, card: BiddableCard, currentbid: int):
         bid = 0
 
         if self.automated:
@@ -42,7 +42,7 @@ class PLAYER:
         else:
             return 0
 
-    def addToTable(self, card: CARD, index: int):
+    def addToTable(self, card: Card, index: int):
         if card.cat not in self.table:
             self.table[card.cat] = [index]
         else:
@@ -54,12 +54,12 @@ class PLAYER:
             card = self.hand[i]
             self.addToTable(card, i)
 
-    def giveCard(self, card: CARD):
+    def giveCard(self, card: Card):
         self.hand.append(card)
         index = len(self.hand) - 1
         self.addToTable(card, index)
 
-    def removeCard(self, card: CARD):
+    def removeCard(self, card: Card):
         self.hand.remove(card)
         self.rebuildTable()
 
@@ -83,8 +83,8 @@ class PLAYER:
 
         return mpackage
 
-    def makeMovie(self, script: CARD, director: CARD, actor: CARD):
-        movie = MOVIE(script, director, actor)
+    def makeMovie(self, script: Card, director: Card, actor: Card):
+        movie = Movie(script, director, actor)
         self.removeCard(script)
         self.removeCard(director)
         self.removeCard(actor)

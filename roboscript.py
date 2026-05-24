@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-from game import GAME
-from deck import DECK
+from game import Game
+from deck import Deck
 import analyse
 
 itt = "a"
@@ -14,7 +14,7 @@ log = []
 movies = []
 
 for i in range(num_games):
-    g = GAME()
+    g = Game()
     g.createPlayers(pType, players)
     g.setup(path)
     g.setFestCount(2)

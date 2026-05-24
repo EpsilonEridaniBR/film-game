@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from movie import MOVIE
-from deck import DECK
+from movie import Movie
+from deck import Deck
+from game import Game
 
 colours = ['r', 'b', 'y', 'g', 'c', 'm']
 
@@ -33,7 +34,7 @@ def plotBalance(logs):
         for i in range(noPlayers):
             plt.plot(x, y[i], colours[i])
                 
-def plotMovies(movielist):
+def plotMovies(movielist: list[Movie]):
 
     fig = plt.figure()
 
@@ -77,7 +78,7 @@ def plotMovies(movielist):
 
     return stats
 
-def deck(deck):
+def deck(deck: Deck):
     fig = plt.figure()
     noCards = len(deck.deck)
     cats = list(deck.table.keys())
@@ -116,7 +117,7 @@ def deck(deck):
         plt.plot(x[i], y[i], "o", color=c)
 
 
-def getWinner(game):
+def getWinner(game: Game):
     lastturn = game.actionlog[-1]
     endcash = lastturn[5:]
     winningBalance = max(endcash)

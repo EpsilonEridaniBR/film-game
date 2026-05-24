@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 import analyse
-from game import GAME
+from game import Game
 
 def recordstats(dic, paraStr, arr):
     dic[paraStr + " MEAN"] = np.mean(arr)
@@ -50,7 +50,7 @@ for gamestate in gamestates:
         wins[player] = 0
 
     for i in range(nogames):
-        g = GAME()
+        g = Game()
         g.createPlayers("a", playing)
         g.setup(path, record["cash"], record["#festivals"], record["cards"])
         g.run()
