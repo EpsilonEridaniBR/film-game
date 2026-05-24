@@ -9,11 +9,11 @@ path = "v0.1/" + itt + "/input.csv"
 players = ["RED", "BLUE", "YELLOW", "GREEN",]# "CYAN", "MAGENTA"]
 pType = "a" #automated
 
-nogames = 1000
+num_games = 1000
 log = []
 movies = []
 
-for i in range(nogames):
+for i in range(num_games):
     g = GAME()
     g.createPlayers(pType, players)
     g.setup(path)
