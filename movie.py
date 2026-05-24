@@ -14,15 +14,23 @@ class MOVIE:
         return self.name
     
     def roll(self):
-        v = self.script.roll() + self.director.roll() + self.actor.roll()
-        self.value = self.value + v
+        rolls = {
+            self.script.name:   self.script.roll(),
+            self.director.name: self.director.roll(),
+            self.actor.name:    self.actor.roll(),
+        }
+        self.rolls = rolls
+        self.value = self.value + sum(rolls.values())
 
     def modify(self, string):
         if string in self.modifiers:
-            self.value = self.value + int(self.modifiers[string][1:])
+            mod = self.modifiers[string]
+            self.value = self.value + int(mod)
+            self.applied_mods.append((string, mod))
 
     def applyMods(self):
         self.modifiers = {}
+        self.applied_mods = []
         self.modifiers.update(self.script.modifiers)
         self.modify(self.director.name)
         self.modifiers.update(self.director.modifiers)
