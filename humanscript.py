@@ -337,7 +337,14 @@ while not g.endGame:
     update_scatter(turn_number)
     fest_mods = ", ".join(f"{k} {v}" for k, v in g.fest.modifiers.items()) if g.fest.modifiers else ""
     fest_str = f"{g.fest.name} ({fest_mods})" if fest_mods else g.fest.name
-    print(f"\n=============================== TURN {turn_number} - {fest_str} ===============================\n")
+    next_fest_idx = next((i for i, c in enumerate(g.deck.toplay) if c.cat == "FESTIVAL"), None)
+    if next_fest_idx == 0:
+        fest_countdown = " — FESTIVAL NEXT TURN"
+    elif next_fest_idx is not None:
+        fest_countdown = f" — NEXT FEST IN {next_fest_idx} TURNS"
+    else:
+        fest_countdown = " — NO MORE FESTIVALS"
+    print(f"\n=============================== TURN {turn_number} - {fest_str}{fest_countdown} ===============================\n")
 
 print(f"\n=== FINAL ROUND ===\n")
 for _ in range(g.noPlayers):
