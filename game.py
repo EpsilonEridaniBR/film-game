@@ -133,7 +133,8 @@ class GAME:
         elif name == "TAX SCANDAL":
             balances = self.actionlog[-1][5:]
             richest = self.players[balances.index(max(balances))]
-            richest.changeBalance(int(val[1:]), 1)
+            dice_roll = sum(random.randint(1, 8) for _ in range(3))
+            richest.changeBalance(dice_roll, 1)
         elif name == "POACH TALENT":
             if self.automated:
                 victim = self.players[random.randrange(0, self.noPlayers)]
