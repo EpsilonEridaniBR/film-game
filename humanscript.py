@@ -293,8 +293,14 @@ while not g.endGame:
                 g.players[g.pIndex].giveCard(stolen)
                 print(f"  → {cname(g.players[g.pIndex])} stole {stolen.name} from {cname(victim)}")
         else:
-            g.applyAction(card, g.players[g.pIndex])
-            print(f"  → {card.name} applied")
+            result = g.applyAction(card, g.players[g.pIndex])
+            if card.name == "TAX SCANDAL" and result is not None:
+                rolled, target = result
+                print(f"  → TAX SCANDAL applied to {cname(target)} — rolled {rolled}")
+            elif card.name == "CASH INJECTION" and result is not None:
+                print(f"  → CASH INJECTION applied to {cname(result)}")
+            else:
+                print(f"  → {card.name} applied")
 
     elif card.cat in ("SCRIPT", "DIRECTOR", "ACTOR"):
         while True:

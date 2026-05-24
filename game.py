@@ -125,16 +125,21 @@ class GAME:
         keys = list(mods.keys())
         key = keys[0]
         val = mods[key]
+        log_suffix = ""
+        result = None
 
         if name == "CASH INJECTION":
             balances = self.actionlog[-1][5:]
             poorest = self.players[balances.index(min(balances))]
             poorest.changeBalance(int(val[1:]), 0)
+            result = poorest.name
         elif name == "TAX SCANDAL":
             balances = self.actionlog[-1][5:]
             richest = self.players[balances.index(max(balances))]
             dice_roll = sum(random.randint(1, 8) for _ in range(3))
             richest.changeBalance(dice_roll, 1)
+            log_suffix = " - rolled " + str(dice_roll)
+            result = (dice_roll, richest.name)
         elif name == "POACH TALENT":
             if self.automated:
                 victim = self.players[random.randrange(0, self.noPlayers)]
@@ -149,7 +154,8 @@ class GAME:
                 player.changeBalance(cost, 1)
 
 
-        self.log(str(card) + " applied action")
+        self.log(str(card) + " applied action" + log_suffix)
+        return result
 
     def nextTurn(self):
         if self.deck.tpleng == 0:
