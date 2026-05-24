@@ -112,6 +112,17 @@ class DECK:
             self.flleng = len(self.flist)
             return festival
         
+    def addFestivals(self, n: int):
+        selected = random.sample(self.flist, min(n, self.flleng))
+        for fest in selected:
+            self.flist.remove(fest)
+        for fest in selected[1:]:
+            self.toplay.append(fest)
+        self.flist.append(selected[0])
+        self.flleng = len(self.flist)
+        self.tpleng = len(self.toplay)
+        self.shuffle()
+
     def recycle(self):
         for card in self.discard:
             self.toplay.append(card)

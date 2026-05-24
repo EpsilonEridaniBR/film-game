@@ -249,16 +249,9 @@ while not g.endGame:
 
     # handle empty deck
     if g.deck.tpleng == 0:
-        g.festCount -= 1
-        if g.festCount == 0:
-            g.startEndGame()
-            print("\n=== FESTIVALS OVER — END GAME ===")
-            break
-        else:
-            g.newFest()
-            festival_log.append((g.fest.name, turn_number))
-            g.deck.recycle()
-            print(f"\n=== NEW FESTIVAL: {g.fest.name} ===\n")
+        g.startEndGame()
+        print("\n=== DECK EXHAUSTED — FINAL ROUND ===")
+        break
 
     g.turnNo += 1
     print()
@@ -302,6 +295,14 @@ while not g.endGame:
             else:
                 print(f"  → {card.name} applied")
 
+    elif card.cat == "FESTIVAL":
+        if g.fest != g.deck.null:
+            g.awardsVote()
+        g.fest = card
+        festival_log.append((g.fest.name, turn_number))
+        g.log("NEW FESTIVAL! - " + str(g.fest))
+        print(f"\n=== NEW FESTIVAL: {g.fest.name} ===\n")
+
     elif card.cat in ("SCRIPT", "DIRECTOR", "ACTOR"):
         while True:
             key = input(f"  Who bought it? ({shortcut_hint}): ").strip().lower()
@@ -320,5 +321,22 @@ while not g.endGame:
     turn_number += 1
     update_plot(turn_number)
     update_scatter(turn_number)
-    print(f"\n=============================== TURN {turn_number} ===============================\n")
+    fest_mods = ", ".join(f"{k} {v}" for k, v in g.fest.modifiers.items()) if g.fest.modifiers else ""
+    fest_str = f"{g.fest.name} ({fest_mods})" if fest_mods else g.fest.name
+    print(f"\n=============================== TURN {turn_number} - {fest_str} ===============================\n")
+
+print(f"\n=== FINAL ROUND ===\n")
+for _ in range(g.noPlayers):
+    print_hands()
+    print_balances()
+    prompt_movie(g.players[g.pIndex])
+    g.pIndex = (g.pIndex + 1) % g.noPlayers
+    turn_number += 1
+    update_plot(turn_number)
+    update_scatter(turn_number)
+
+print("\n=== GAME OVER ===")
+print_balances()
+plt.ioff()
+plt.show(block=True)
 

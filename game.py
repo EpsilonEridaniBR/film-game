@@ -67,7 +67,6 @@ class GAME:
         self.fest = self.deck.null
         self.debuff = self.deck.null
         self.movies: list[MOVIE] = []
-        self.newFest()
 
         noCards = 6
         deal_cats = {"SCRIPT", "DIRECTOR", "ACTOR"}
@@ -78,9 +77,17 @@ class GAME:
 
         self.deck.shuffle()
 
+    def activateFestival(self, card: CARD):
+        if self.fest != self.deck.null:
+            self.awardsVote()
+        self.fest = card
+        self.log("NEW FESTIVAL! - " + str(self.fest))
+
     def setFestCount(self, count: int):
         self.festCount = count
         self.endGame = 0
+        self.deck.addFestivals(count)
+        self.newFest()
 
     def startEndGame(self):
         self.endGame = 1
@@ -160,33 +167,26 @@ class GAME:
     def nextTurn(self):
         if self.deck.tpleng == 0:
             if not self.endGame:
-                self.festCount = self.festCount - 1
-                if self.festCount == 0:
-                    self.startEndGame()
-                else:
-                    self.newFest()
-                    self.deck.recycle()
+                self.startEndGame()
 
-        # initialise turn
         self.turnNo = self.turnNo + 1
         activePlayer = self.players[self.pIndex]
 
         if not self.endGame:
 
             activeCard = self.deck.reveal()
-            
 
             if not self.automated:
                 activeCard.info()
 
-            # card actions
-            # bid if needed
             if hasattr(activeCard, "dice"):
                 self.bidding(activeCard)
             elif activeCard.cat == "DEBUFF":
                 self.replaceDebuff(activeCard)
             elif activeCard.cat == "EVENT":
                 self.applyAction(activeCard, activePlayer)
+            elif activeCard.cat == "FESTIVAL":
+                self.activateFestival(activeCard)
             else:
                 self.log("SKIPPED " + str(activeCard))
 
