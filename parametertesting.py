@@ -11,8 +11,8 @@ def recordstats(dic, paraStr, arr):
     dic[paraStr + " MIN"] = np.min(arr)
 
 itt = "a"
-path = "v0.1/" + itt + "/input.csv"
-savepath = "v0.1/" + itt + "/massanalysis.csv"
+path = itt + "/input.csv"
+savepath = itt + "/massanalysis.csv"
 
 players = ["A","B","C","D","E","F","G","H","I","J","K","L"]
 

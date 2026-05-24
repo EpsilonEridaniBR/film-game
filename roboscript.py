@@ -4,7 +4,7 @@ from deck import DECK
 import analyse
 
 itt = "a"
-path = "v0.1/" + itt + "/input.csv"
+path = itt + "/input.csv"
 
 players = ["RED", "BLUE", "YELLOW", "GREEN",]# "CYAN", "MAGENTA"]
 pType = "a" #automated

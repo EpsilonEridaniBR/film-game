@@ -12,7 +12,7 @@ from game import GAME
 from player import PLAYER
 
 itt = "a"
-path = "v0.1/" + itt + "/input.csv"
+path = itt + "/input.csv"
 
 players = ["RED", "BLUE", "YELLOW", "GREEN"]
 
