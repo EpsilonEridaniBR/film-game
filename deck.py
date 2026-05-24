@@ -9,7 +9,7 @@ class DECK:
         self.glossary = {}
         self.table = {} # dictionary the maps categories of cards to deck indecies
 
-    def paircard(self, card, pairid, mod):
+    def paircard(self, card: CARD, pairid: int, mod):
         # applies modifies to a pair of cards
         pairedcard = self.deck[pairid]
         card.attachModifier(pairedcard.name, mod)

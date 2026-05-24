@@ -1,7 +1,7 @@
 import random
 
 class CARD:
-    def __init__(self, no, category, name, quantity):
+    def __init__(self, no: int, category: str, name: str, quantity: int):
         self.no = no
         self.cat = category
         self.name = name
@@ -26,7 +26,7 @@ class CARD:
 
         return rsum
 
-    def attachModifier(self, name, mod):
+    def attachModifier(self, name: str, mod):
         self.modifiers[name] = mod
 
     def info(self):

@@ -1,4 +1,5 @@
 import random
+from card import CARD
 from movie import MOVIE
 
 robobehav = ["random", "boring"]
@@ -13,9 +14,9 @@ class PLAYER:
     def __str__(self):
         return self.name
 
-    def reset(self, cash):
+    def reset(self, cash: int):
         self.balance = cash
-        self.hand = []
+        self.hand: list[CARD] = []
         self.table = {}
         self.movies = []
 
@@ -26,7 +27,7 @@ class PLAYER:
         for i in range(len(self.hand)):
             print("[" + str(i) + "]: " + str(self.hand[i]))
 
-    def bid(self, card, currentbid):
+    def bid(self, card: CARD, currentbid: int):
         bid = 0
 
         if self.automated:
@@ -41,7 +42,7 @@ class PLAYER:
         else:
             return 0
 
-    def addToTable(self, card, index):
+    def addToTable(self, card: CARD, index: int):
         if card.cat not in self.table:
             self.table[card.cat] = [index]
         else:
@@ -53,16 +54,16 @@ class PLAYER:
             card = self.hand[i]
             self.addToTable(card, i)
 
-    def giveCard(self, card):
+    def giveCard(self, card: CARD):
         self.hand.append(card)
         index = len(self.hand) - 1
         self.addToTable(card, index)
 
-    def removeCard(self, card):
+    def removeCard(self, card: CARD):
         self.hand.remove(card)
         self.rebuildTable()
 
-    def changeBalance(self, amount, negabool):
+    def changeBalance(self, amount: int, negabool: int):
         self.balance = self.balance + (amount * ((-1)**negabool))
         if self.balance < 0:
             self.balance = 0
@@ -82,7 +83,7 @@ class PLAYER:
 
         return mpackage
 
-    def makeMovie(self, script, director, actor):
+    def makeMovie(self, script: CARD, director: CARD, actor: CARD):
         movie = MOVIE(script, director, actor)
         self.removeCard(script)
         self.removeCard(director)

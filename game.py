@@ -3,6 +3,7 @@ import random
 from player import PLAYER
 from deck import DECK
 from card import CARD
+from movie import MOVIE
 
 class GAME:
     def __init__(self):
@@ -10,8 +11,8 @@ class GAME:
         self.timeOfGeneration = datetime.datetime.now()
         self.actionlog.append("Game Generated @ " + str(self.timeOfGeneration))
 
-    def log(self, message):
-        log = []
+    def log(self, message: str):
+        log: list = []
         log.append("TURN: ")
         log.append(self.turnNo)
         log.append("CARDS LEFT: " + str(self.deck.tpleng))
@@ -23,9 +24,9 @@ class GAME:
 
         self.actionlog.append(log)
 
-    def createPlayers(self, type, arr):
+    def createPlayers(self, type: str, arr: list[str]):
 
-        self.players = []
+        self.players: list[PLAYER] = []
 
         if type == "a":
             self.automated = 1
@@ -37,7 +38,7 @@ class GAME:
 
         self.noPlayers = len(self.players)
 
-    def resetPlayers(self, cash):
+    def resetPlayers(self, cash: int):
         for player in self.players:
             player.reset(cash)
 
@@ -65,7 +66,7 @@ class GAME:
         self.resetPlayers(100)
         self.fest = self.deck.null
         self.debuff = self.deck.null
-        self.movies = []
+        self.movies: list[MOVIE] = []
         self.newFest()
 
         noCards = 6
@@ -74,7 +75,7 @@ class GAME:
             card = self.deck.reveal()
             self.players[i%self.noPlayers].giveCard(card)
 
-    def setFestCount(self, count):
+    def setFestCount(self, count: int):
         self.festCount = count
         self.endGame = 0
 
@@ -82,7 +83,7 @@ class GAME:
         self.endGame = 1
         self.log("FESTIVALS ARE OVER - END GAME HAS STARTED")
 
-    def bidding(self, card):
+    def bidding(self, card: CARD):
         bidders = self.players.copy()
         bindex = self.pIndex
         bid = 0
@@ -115,7 +116,7 @@ class GAME:
         self.log(str(self.debuff) + " has been replaced by " + str(newDebuff))
         self.debuff = newDebuff
 
-    def applyAction(self, card, activePlayer):
+    def applyAction(self, card: CARD, activePlayer: PLAYER):
         name = card.name
         mods = card.modifiers
         keys = list(mods.keys())
@@ -128,8 +129,8 @@ class GAME:
             poorest.changeBalance(int(val[1:]), 0)
         elif name == "TAX SCANDAL":
             balances = self.actionlog[-1][5:]
-            poorest = self.players[balances.index(max(balances))]
-            poorest.changeBalance(int(val[1:]), 1)
+            richest = self.players[balances.index(max(balances))]
+            richest.changeBalance(int(val[1:]), 1)
         elif name == "POACH TALENT":
             if self.automated:
                 victim = self.players[random.randrange(0, self.noPlayers)]
